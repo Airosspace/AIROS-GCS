@@ -38,11 +38,16 @@ using System.Linq;
 using MissionPlanner.Joystick;
 using System.Net;
 using Newtonsoft.Json;
+using static ExifLibrary.JFIFThumbnail;
+using Timer = System.Windows.Forms.Timer;
 
 namespace MissionPlanner
 {
     public partial class MainV2 : Form
     {
+        private Imagef imageForm;
+        private List<string> imagePaths;
+        private string folderPath;
         private static readonly ILog log =
             LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -63,6 +68,9 @@ namespace MissionPlanner
             public abstract Image disconnect { get; }
             public abstract Image bg { get; }
             public abstract Image wizard { get; }
+
+
+
         }
 
 
@@ -199,6 +207,10 @@ namespace MissionPlanner
                         return global::MissionPlanner.Properties.Resources.wizardicon;
                 }
             }
+
+
+
+
         }
 
         public class highcontrastmenuicons : menuicons
@@ -336,6 +348,11 @@ namespace MissionPlanner
                         return global::MissionPlanner.Properties.Resources.wizardicon;
                 }
             }
+
+ 
+
+
+
         }
 
         Controls.MainSwitcher MyView;
@@ -4658,11 +4675,11 @@ namespace MissionPlanner
         {
             try
             {
-                System.Diagnostics.Process.Start("https://ardupilot.org/?utm_source=Menu&utm_campaign=MP");
+                System.Diagnostics.Process.Start("https://airosspace.com/");
             }
             catch
             {
-                CustomMessageBox.Show("Failed to open url https://ardupilot.org");
+                CustomMessageBox.Show("Failed to open url https://airosspace.com/");
             }
         }
 
@@ -4798,6 +4815,318 @@ namespace MissionPlanner
                     //We have our panel, color it and exit loop
                     break;
                 }
+            }
+        }
+
+        private void pythonbut_Click(object sender, EventArgs e)
+        {
+            pythonbut.FlatStyle = FlatStyle.Flat;
+            pythonbut.FlatAppearance.BorderSize = 0;
+
+            string ipAddress = PromptForIpAddress();
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                // Execute the Python scripts with the IP address as a command-line argument
+                string script1Path = "serveri.py";
+                string script2Path = "serjson20.py";
+                string script3Path = "serjson5.py";
+                string arguments = ipAddress;
+
+                Process process1 = new Process();
+                process1.StartInfo.FileName = "python";
+                process1.StartInfo.Arguments = $"{script1Path} {arguments}";
+                process1.Start();
+
+                Process process2 = new Process();
+                process2.StartInfo.FileName = "python";
+                process2.StartInfo.Arguments = $"{script2Path} {arguments}";
+                process2.Start();
+
+                Process process3 = new Process();
+                process3.StartInfo.FileName = "python";
+                process3.StartInfo.Arguments = $"{script3Path} {arguments}";
+                process3.Start();
+            }
+        }
+
+        private string PromptForIpAddress()
+        {
+            // Show a MessageBox input to prompt the user for the IP address
+            string promptText = "Enter IP address:";
+            string caption = "IP Address Input";
+            string defaultIpAddress = "";
+
+            // Display the input box and retrieve the entered IP address
+            DialogResult result = CustomInputBox(promptText, caption, ref defaultIpAddress);
+
+            if (result == DialogResult.OK)
+            {
+                return defaultIpAddress;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+
+
+        private DialogResult CustomInputBox(string prompt, string caption, ref string value)
+        {
+            Form inputBox = new Form();
+            inputBox.FormBorderStyle = FormBorderStyle.FixedDialog;
+            inputBox.ClientSize = new System.Drawing.Size(200, 100);
+            inputBox.Text = caption;
+
+            TextBox textBox = new TextBox();
+            textBox.Size = new System.Drawing.Size(150, 23);
+            textBox.Location = new System.Drawing.Point(20, 20);
+            textBox.Text = value;
+            inputBox.Controls.Add(textBox);
+
+            Button okButton = new Button();
+            okButton.DialogResult = DialogResult.OK;
+            okButton.Size = new System.Drawing.Size(75, 23);
+            okButton.Location = new System.Drawing.Point(20, 55);
+            okButton.Text = "OK";
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new Button();
+            cancelButton.DialogResult = DialogResult.Cancel;
+            cancelButton.Size = new System.Drawing.Size(75, 23);
+            cancelButton.Location = new System.Drawing.Point(100, 55);
+            cancelButton.Text = "Cancel";
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            DialogResult result = inputBox.ShowDialog();
+            value = textBox.Text;
+            return result;
+        }
+
+        private void ImageForm_Resize(object sender, EventArgs e)
+        {
+            if (imageForm.WindowState == FormWindowState.Minimized)
+            {
+                WindowState = FormWindowState.Normal;
+                Activate();
+            }
+        }
+
+        private void image_Click(object sender, EventArgs e)
+        {
+            string baseDirectory = Application.StartupPath;
+            string folderName = "five";
+            folderPath = Path.Combine(baseDirectory, folderName);
+
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+
+            // Get the image file paths from the specified folder
+            string[] imagePaths = Directory.GetFiles(folderPath, "*.png");
+
+            // Open the ImageForm
+            imageForm = new Imagef(imagePaths);
+            imageForm.Resize += ImageForm_Resize;
+            imageForm.ShowDialog();
+        }
+
+        private void RefreshImagePaths()
+        {
+            string baseDirectory = Application.StartupPath;
+            string folderName = "five";
+            folderPath = Path.Combine(baseDirectory, folderName);
+
+            if (!string.IsNullOrEmpty(folderPath))
+            {
+                imagePaths = Directory.GetFiles(folderPath, "*.png").ToList();
+            }
+        }
+
+        private void Worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // Periodically check for changes in the folder and refresh the image paths
+            while (true)
+            {
+                System.Threading.Thread.Sleep(5000); // Adjust the interval as needed
+                string baseDirectory = Application.StartupPath;
+                string folderName = "five";
+                folderPath = Path.Combine(baseDirectory, folderName);
+                // Check if the folder path is not empty
+                if (!string.IsNullOrEmpty(folderPath))
+                {
+                    List<string> currentPaths = Directory.GetFiles(folderPath, "*.png").ToList();
+
+                    // Compare the current image paths with the previous ones
+                    if (imagePaths == null || currentPaths == null || !Enumerable.SequenceEqual(imagePaths, currentPaths))
+                    {
+                        imagePaths = currentPaths;
+
+                        // Update the image paths in the Imagef form if it's open
+                        if (imageForm != null)
+                        {
+                            imageForm.Invoke((MethodInvoker)(() =>
+                            {
+                                imageForm.imagePaths = imagePaths.ToArray();
+                                imageForm.ShowImages();
+                            }));
+                        }
+                    }
+                }
+            }
+        }
+
+        private void split_Click(object sender, EventArgs e)
+        {
+            string baseDirectory = Application.StartupPath;
+            string folderName = "twenty";
+            string directoryPath = Path.Combine(baseDirectory, folderName);
+
+            if (!Directory.Exists(directoryPath))
+                Directory.CreateDirectory(directoryPath);
+
+            string[] txtFiles = Directory.GetFiles(directoryPath, "*.txt");
+
+            StringBuilder missionFileContent1 = new StringBuilder();
+            StringBuilder missionFileContent2 = new StringBuilder();
+            StringBuilder missionFileContent3 = new StringBuilder();
+
+
+            int i = 1;
+            int j = 1;
+            int k = 1;
+
+            double lat1 = 26.9897002;
+            double lat2 = 26.9892123;
+            double lat3 = 26.9886943;
+            double lat4 = 26.9895936;
+            double lat5 = 26.9889111;
+            double lat6 = 26.9894416;
+            double lat7 = 26.9882688;
+            double lat8 = 26.9876045;
+
+            double lon1 = 80.8869727;
+            double lon2 = 80.8798338;
+            double lon3 = 80.8903651;
+            double lon4 = 80.8837848;
+            double lon5 = 80.8984025;
+            double lon6 = 80.898252;
+            double lon7 = 80.9095182;
+            double lon8 = 80.9112338;
+
+
+
+            foreach (string txtFile in txtFiles)
+            {
+                string fileContent = File.ReadAllText(txtFile);
+
+                // Assuming each line in the text file contains a latitude and longitude separated by a space
+                string[] lines = fileContent.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (string line in lines)
+                {
+                    string[] coordinates = line.Split(',');
+
+                    if (coordinates.Length == 2 && double.TryParse(coordinates[0], out double latitude) && double.TryParse(coordinates[1], out double longitude))
+                    {
+
+                        if (IsWithinSquare1(lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4, latitude, longitude))
+                        {
+
+                            missionFileContent1.AppendLine($"{i}\t{latitude}\t{longitude}");
+
+                            i++;
+
+                        }
+
+                        else if (IsWithinSquare2(lat3, lon3, lat4, lon4, lat5, lon5, lat6, lon6, latitude, longitude))
+                        {
+
+                            missionFileContent2.AppendLine($"{j}\t{latitude}\t{longitude}");
+
+                            j++;
+
+                        }
+
+                        else if (IsWithinSquare3(lat5, lon5, lat6, lon6, lat7, lon7, lat8, lon8, latitude, longitude))
+                        {
+
+                            missionFileContent3.AppendLine($"{k}\t{latitude}\t{longitude}");
+
+                            k++;
+                        }
+
+                    }
+                }
+
+
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string waypointFilePath1 = Path.Combine(desktopPath, "one.txt");
+                string waypointFilePath2 = Path.Combine(desktopPath, "two.txt");
+                string waypointFilePath3 = Path.Combine(desktopPath, "three.txt");
+
+                File.WriteAllText(waypointFilePath1, missionFileContent1.ToString());
+                File.WriteAllText(waypointFilePath2, missionFileContent2.ToString());
+                File.WriteAllText(waypointFilePath3, missionFileContent3.ToString());
+
+                MessageBox.Show("Conversion completed successfully!");
+            }
+
+        }
+
+
+        static bool IsWithinSquare1(double lat1, double lon1, double lat2, double lon2, double lat3, double lon3, double lat4, double lon4, double latitude, double longitude)
+        {
+            double minLat = Math.Min(lat1, Math.Min(lat2, Math.Min(lat3, lat4)));
+            double maxLat = Math.Max(lat1, Math.Max(lat2, Math.Max(lat3, lat4)));
+            double minLon = Math.Min(lon1, Math.Min(lon2, Math.Min(lon3, lon4)));
+            double maxLon = Math.Max(lon1, Math.Max(lon2, Math.Max(lon3, lon4)));
+
+            if (minLat <= latitude && latitude <= maxLat && minLon <= longitude && longitude <= maxLon)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        static bool IsWithinSquare2(double lat3, double lon3, double lat4, double lon4, double lat5, double lon5, double lat6, double lon6, double latitude, double longitude)
+        {
+            double minLat = Math.Min(lat3, Math.Min(lat4, Math.Min(lat5, lat6)));
+            double maxLat = Math.Max(lat3, Math.Max(lat4, Math.Max(lat5, lat6)));
+            double minLon = Math.Min(lon3, Math.Min(lon4, Math.Min(lon5, lon6)));
+            double maxLon = Math.Max(lon3, Math.Max(lon4, Math.Max(lon5, lon6)));
+
+            if (minLat <= latitude && latitude <= maxLat && minLon <= longitude && longitude <= maxLon)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        static bool IsWithinSquare3(double lat5, double lon5, double lat6, double lon6, double lat7, double lon7, double lat8, double lon8, double latitude, double longitude)
+        {
+            double minLat = Math.Min(lat5, Math.Min(lat6, Math.Min(lat7, lat8)));
+            double maxLat = Math.Max(lat5, Math.Max(lat6, Math.Max(lat7, lat8)));
+            double minLon = Math.Min(lon5, Math.Min(lon6, Math.Min(lon7, lon8)));
+            double maxLon = Math.Max(lon5, Math.Max(lon6, Math.Max(lon7, lon8)));
+
+            if (minLat <= latitude && latitude <= maxLat && minLon <= longitude && longitude <= maxLon)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
     }

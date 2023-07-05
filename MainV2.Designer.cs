@@ -54,6 +54,9 @@ namespace MissionPlanner
             this.MenuArduPilot = new System.Windows.Forms.ToolStripButton();
             this.menu = new MissionPlanner.Controls.MyButton();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.image = new System.Windows.Forms.Button();
+            this.split = new System.Windows.Forms.Button();
+            this.pythonbut = new System.Windows.Forms.Button();
             this.status1 = new MissionPlanner.Controls.Status();
             this.MainMenu.SuspendLayout();
             this.CTX_mainmenu.SuspendLayout();
@@ -83,6 +86,7 @@ namespace MissionPlanner
             // 
             // CTX_mainmenu
             // 
+            this.CTX_mainmenu.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.CTX_mainmenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.autoHideToolStripMenuItem,
             this.fullScreenToolStripMenuItem,
@@ -207,16 +211,49 @@ namespace MissionPlanner
             // 
             resources.ApplyResources(this.menu, "menu");
             this.menu.Name = "menu";
+            this.menu.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.menu.UseVisualStyleBackColor = true;
             this.menu.MouseEnter += new System.EventHandler(this.menu_MouseEnter);
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.image);
+            this.panel1.Controls.Add(this.split);
+            this.panel1.Controls.Add(this.pythonbut);
             this.panel1.Controls.Add(this.status1);
             this.panel1.Controls.Add(this.MainMenu);
             resources.ApplyResources(this.panel1, "panel1");
             this.panel1.Name = "panel1";
             this.panel1.MouseLeave += new System.EventHandler(this.MainMenu_MouseLeave);
+            // 
+            // image
+            // 
+            this.image.BackColor = System.Drawing.SystemColors.ControlText;
+            this.image.FlatAppearance.BorderSize = 0;
+            resources.ApplyResources(this.image, "image");
+            this.image.Image = global::MissionPlanner.Properties.Resources.gallery;
+            this.image.Name = "image";
+            this.image.UseVisualStyleBackColor = false;
+            this.image.Click += new System.EventHandler(this.image_Click);
+            // 
+            // split
+            // 
+            this.split.BackColor = System.Drawing.SystemColors.ControlText;
+            this.split.FlatAppearance.BorderSize = 0;
+            resources.ApplyResources(this.split, "split");
+            this.split.Name = "split";
+            this.split.UseVisualStyleBackColor = false;
+            this.split.Click += new System.EventHandler(this.split_Click);
+            // 
+            // pythonbut
+            // 
+            this.pythonbut.BackColor = System.Drawing.SystemColors.ControlText;
+            resources.ApplyResources(this.pythonbut, "pythonbut");
+            this.pythonbut.FlatAppearance.BorderSize = 0;
+            this.pythonbut.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.pythonbut.Name = "pythonbut";
+            this.pythonbut.UseVisualStyleBackColor = false;
+            this.pythonbut.Click += new System.EventHandler(this.pythonbut_Click);
             // 
             // status1
             // 
@@ -230,6 +267,7 @@ namespace MissionPlanner
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.menu);
+            this.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.KeyPreview = true;
             this.MainMenuStrip = this.MainMenu;
             this.Name = "MainV2";
@@ -264,5 +302,8 @@ namespace MissionPlanner
         public System.Windows.Forms.ToolStripButton MenuHelp;
         public System.Windows.Forms.ToolStripButton MenuArduPilot;
         public Controls.Status status1;
+        private System.Windows.Forms.Button pythonbut;
+        private System.Windows.Forms.Button image;
+        private System.Windows.Forms.Button split;
     }
 }
